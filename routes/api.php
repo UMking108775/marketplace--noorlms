@@ -10,6 +10,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:120,1')->group(functi
     Route::get('categories', [AddonController::class, 'categories'])->name('categories');
     Route::get('addons/{slug}', [AddonController::class, 'show'])->name('addons.show');
     Route::get('addons/{slug}/download', [AddonController::class, 'download'])->middleware('throttle:30,1')->name('addons.download');
+    Route::post('addons/{slug}/reviews', [AddonController::class, 'storeReview'])->middleware('throttle:10,1')->name('addons.reviews.store');
 
     Route::post('licenses/validate', [LicenseController::class, 'validateKey'])->middleware('throttle:30,1')->name('licenses.validate');
 });

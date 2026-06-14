@@ -40,12 +40,46 @@ class AddonController extends Controller
         ]);
     }
 
-    /** GET /api/v1/addons/{slug} — full detail + versions + screenshots. */
+    /** GET /api/v1/addons/{slug} — full detail + versions + screenshots + reviews. */
     public function show(string $slug)
     {
-        $addon = Addon::published()->with(['category', 'screenshots', 'versions'])->where('slug', $slug)->firstOrFail();
+        $addon = Addon::published()
+            ->with(['category', 'screenshots', 'versions', 'reviews' => fn ($q) => $q->where('is_approved', true)->latest()])
+            ->where('slug', $slug)->firstOrFail();
 
         return response()->json(['data' => $this->detail($addon)]);
+    }
+
+    /**
+     * POST /api/v1/addons/{slug}/reviews — submit a review from an LMS install.
+     * The calling site's domain (X-Site-Domain) keeps it to one review per site
+     * per addon: re-submitting updates the existing review instead of stacking.
+     */
+    public function storeReview(Request $request, string $slug)
+    {
+        $addon = Addon::published()->where('slug', $slug)->firstOrFail();
+
+        $data = $request->validate([
+            'reviewer_name' => 'required|string|max:80',
+            'rating'        => 'required|integer|min:1|max:5',
+            'comment'       => 'nullable|string|max:1500',
+        ]);
+
+        $domain = $request->header('X-Site-Domain') ?: $request->input('domain');
+
+        if ($domain) {
+            $addon->reviews()->updateOrCreate(['domain' => $domain], $data + ['is_approved' => true]);
+        } else {
+            $addon->reviews()->create($data + ['is_approved' => true]);
+        }
+
+        $addon->recomputeRating();
+
+        return response()->json(['data' => [
+            'ok'           => true,
+            'rating'       => (float) $addon->rating_avg,
+            'rating_count' => $addon->rating_count,
+        ]], 201);
     }
 
     /** GET /api/v1/addons/{slug}/download — stream the zip (free; paid needs a license). */
@@ -121,6 +155,12 @@ class AddonController extends Controller
         return array_merge($this->summary($a), [
             'description' => $a->description,
             'screenshots' => $a->screenshots->map(fn ($s) => $s->url)->values(),
+            'reviews'     => $a->relationLoaded('reviews') ? $a->reviews->take(12)->map(fn ($r) => [
+                'reviewer_name' => $r->reviewer_name ?: 'Anonymous',
+                'rating'        => (int) $r->rating,
+                'comment'       => $r->comment,
+                'created_at'    => $r->created_at?->toIso8601String(),
+            ])->values() : [],
             'versions'    => $a->versions->map(fn ($v) => [
                 'version'         => $v->version,
                 'changelog'       => $v->changelog,
