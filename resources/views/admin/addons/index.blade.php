@@ -43,7 +43,7 @@
                 <a href="{{ route('admin.addons.edit', $addon) }}" class="group bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-indigo-200 transition">
                     <div class="flex items-start gap-3">
                         @if ($addon->icon_path)
-                            <img src="{{ Storage::url($addon->icon_path) }}" alt="" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-gray-100">
+                            <img src="{{ $addon->icon_url }}" alt="" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-gray-100">
                         @else
                             <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold flex-shrink-0">{{ strtoupper(mb_substr($addon->name, 0, 1)) }}</div>
                         @endif

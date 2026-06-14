@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\AddonController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// ── Public catalog (Play-Store-style) ──
+Route::get('/', [CatalogController::class, 'home'])->name('catalog.home');
+Route::get('/addons', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/addons/{addon:slug}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::get('/categories/{category:slug}', [CatalogController::class, 'category'])->name('catalog.category');
 
 Route::get('/dashboard', function () {
     return view('dashboard', ['stats' => [

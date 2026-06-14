@@ -55,4 +55,11 @@ class Addon extends Model
     {
         return ! $this->is_paid || (float) $this->price <= 0;
     }
+
+    public function getIconUrlAttribute(): ?string
+    {
+        return $this->icon_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->icon_path)
+            : null;
+    }
 }
