@@ -8,36 +8,41 @@ use Illuminate\Http\Request;
 
 class LicenseController extends Controller
 {
-    /** POST /api/v1/licenses/validate — does this key entitle the caller to the addon? */
+    /**
+     * POST /api/v1/licenses/validate
+     *
+     * Accepts both the marketplace's own params and the LMS AddonLicenseValidator
+     * contract ({addon, vendor, version, key, domain}). Binds the calling domain
+     * against the activation limit.
+     */
     public function validateKey(Request $request)
     {
-        $data = $request->validate([
-            'license_key' => 'required|string',
-            'domain'      => 'nullable|string',
-            'addon'       => 'nullable|string', // package slug, optional cross-check
-        ]);
+        $key = $request->input('key', $request->input('license_key'));
+        if (! $key) {
+            return response()->json(['valid' => false, 'reason' => 'missing_key', 'message' => 'A license key is required.'], 422);
+        }
 
-        $license = License::with('addon')->where('license_key', $data['license_key'])->first();
-
+        $license = License::with('addon')->where('license_key', $key)->first();
         if (! $license) {
             return response()->json(['valid' => false, 'reason' => 'not_found', 'message' => 'License key not found.'], 404);
         }
 
-        if (! $license->isValid()) {
-            return response()->json(['valid' => false, 'reason' => $license->status, 'message' => "License is {$license->status}."]);
+        // The LMS sends the addon's package name; cross-check it.
+        $addon = $request->input('addon');
+        if ($addon && $license->addon && $license->addon->package_name !== $addon && $license->addon->slug !== $addon) {
+            return response()->json(['valid' => false, 'reason' => 'addon_mismatch', 'message' => 'This license is for a different addon.']);
         }
 
-        if (! empty($data['addon']) && $license->addon
-            && $license->addon->slug !== $data['addon'] && $license->addon->package_name !== $data['addon']) {
-            return response()->json(['valid' => false, 'reason' => 'addon_mismatch', 'message' => 'This license is for a different addon.']);
+        $result = $license->activate($request->input('domain'));
+        if (! $result['ok']) {
+            return response()->json(['valid' => false, 'reason' => $result['reason'], 'message' => $result['message']]);
         }
 
         return response()->json([
             'valid'       => true,
-            'addon'       => $license->addon?->slug,
-            'package'     => $license->addon?->package_name,
+            'addon'       => $license->addon?->package_name,
             'expires_at'  => $license->expires_at?->toIso8601String(),
-            'activations' => ['used' => $license->activations_used, 'limit' => $license->activation_limit],
+            'activations' => ['used' => $license->activations()->count(), 'limit' => (int) $license->activation_limit],
         ]);
     }
 }

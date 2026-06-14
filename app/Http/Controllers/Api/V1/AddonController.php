@@ -59,8 +59,12 @@ class AddonController extends Controller
                 return response()->json(['error' => 'license_required', 'message' => 'This is a paid addon — a license key is required.'], 402);
             }
             $license = License::where('addon_id', $addon->id)->where('license_key', $key)->first();
-            if (! $license || ! $license->isValid()) {
-                return response()->json(['error' => 'invalid_license', 'message' => 'The license key is invalid, suspended or expired.'], 403);
+            if (! $license) {
+                return response()->json(['error' => 'invalid_license', 'message' => 'License key not found for this addon.'], 403);
+            }
+            $activation = $license->activate($request->header('X-Site-Domain') ?: $request->query('domain'));
+            if (! $activation['ok']) {
+                return response()->json(['error' => $activation['reason'], 'message' => $activation['message']], 403);
             }
         }
 

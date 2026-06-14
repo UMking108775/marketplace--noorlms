@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AddonController;
+use App\Http\Controllers\Admin\LicenseController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     Route::post('addons/{addon}/screenshots', [AddonController::class, 'addScreenshots'])->name('addons.screenshots.store');
     Route::delete('addons/{addon}/screenshots/{screenshot}', [AddonController::class, 'deleteScreenshot'])->name('addons.screenshots.destroy');
+
+    // Licenses (paid addons)
+    Route::get('licenses', [LicenseController::class, 'index'])->name('licenses.index');
+    Route::post('licenses', [LicenseController::class, 'store'])->name('licenses.store');
+    Route::put('licenses/{license}', [LicenseController::class, 'update'])->name('licenses.update');
+    Route::delete('licenses/{license}', [LicenseController::class, 'destroy'])->name('licenses.destroy');
+    Route::delete('licenses/{license}/activations/{activation}', [LicenseController::class, 'deactivate'])->name('licenses.deactivate');
 });
 
 require __DIR__.'/auth.php';
