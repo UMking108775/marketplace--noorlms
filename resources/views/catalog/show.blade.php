@@ -19,6 +19,7 @@
             <div class="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500">
                 <span><i class="fas fa-code-branch mr-1"></i>v{{ $addon->latest_version }}</span>
                 <span><i class="fas fa-download mr-1"></i>{{ number_format($addon->downloads_count) }} downloads</span>
+                @if ($addon->rating_count > 0)<span class="inline-flex items-center gap-1.5">@include('catalog._stars', ['rating' => $addon->rating_avg]) {{ number_format($addon->rating_avg, 1) }} ({{ $addon->rating_count }})</span>@endif
                 @if ($addon->min_lms_version)<span><i class="fas fa-circle-check mr-1"></i>LMS {{ $addon->min_lms_version }}+</span>@endif
             </div>
         </div>
@@ -64,6 +65,50 @@
                         </div>
                     @endforeach
                 </div>
+            </div>
+
+            {{-- Reviews --}}
+            <div class="bg-white rounded-2xl border border-gray-200 p-6" id="reviews">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-gray-900">Reviews</h2>
+                    @if ($addon->rating_count > 0)
+                        <div class="flex items-center gap-2">@include('catalog._stars', ['rating' => $addon->rating_avg])<span class="text-sm font-semibold text-gray-700">{{ number_format($addon->rating_avg, 1) }}</span><span class="text-xs text-gray-400">· {{ $addon->rating_count }} review(s)</span></div>
+                    @endif
+                </div>
+
+                @if (session('reviewed'))
+                    <div class="mb-4 px-4 py-2.5 rounded-lg bg-emerald-50 text-emerald-700 text-sm"><i class="fas fa-circle-check mr-1"></i>Thanks — your review was posted.</div>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-4 px-4 py-2.5 rounded-lg bg-red-50 text-red-700 text-sm">{{ $errors->first() }}</div>
+                @endif
+
+                @forelse ($addon->reviews as $rev)
+                    <div class="py-3 border-b border-gray-100 last:border-0">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-gray-800">{{ $rev->reviewer_name }}</p>
+                            @include('catalog._stars', ['rating' => $rev->rating])
+                        </div>
+                        @if ($rev->comment)<p class="text-sm text-gray-600 mt-1">{{ $rev->comment }}</p>@endif
+                        <p class="text-[11px] text-gray-400 mt-1">{{ $rev->created_at?->diffForHumans() }}</p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-400">No reviews yet — be the first.</p>
+                @endforelse
+
+                <form method="POST" action="{{ route('catalog.reviews.store', $addon) }}" class="mt-5 pt-5 border-t border-gray-100" x-data="{ rating: 5 }">
+                    @csrf
+                    <p class="text-sm font-semibold text-gray-800 mb-2">Write a review</p>
+                    <div class="flex items-center gap-1 mb-3 text-xl">
+                        @for ($i = 1; $i <= 5; $i++)
+                            <button type="button" @click="rating = {{ $i }}" class="focus:outline-none"><i class="fas fa-star" :class="rating >= {{ $i }} ? 'text-amber-400' : 'text-gray-300'"></i></button>
+                        @endfor
+                        <input type="hidden" name="rating" :value="rating">
+                    </div>
+                    <input type="text" name="reviewer_name" required maxlength="80" placeholder="Your name" class="w-full sm:w-1/2 text-sm rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 mb-3">
+                    <textarea name="comment" rows="3" maxlength="1500" placeholder="Your experience with this addon…" class="w-full text-sm rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 mb-3"></textarea>
+                    <div><button class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Post review</button></div>
+                </form>
             </div>
         </div>
 

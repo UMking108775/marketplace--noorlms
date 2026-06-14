@@ -18,9 +18,17 @@ class AddonController extends Controller
             ->when($request->filled('category'), fn ($q) => $q->whereHas('category', fn ($c) => $c->where('slug', $request->string('category'))))
             ->when($request->filled('q'), fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', '%' . $request->string('q') . '%')->orWhere('tagline', 'like', '%' . $request->string('q') . '%')))
             ->when($request->string('type')->value() === 'free', fn ($q) => $q->where('is_paid', false))
-            ->when($request->string('type')->value() === 'paid', fn ($q) => $q->where('is_paid', true))
-            ->orderByDesc('is_featured')->orderByDesc('published_at')
-            ->paginate(20)->withQueryString();
+            ->when($request->string('type')->value() === 'paid', fn ($q) => $q->where('is_paid', true));
+
+        match ($request->string('sort')->value()) {
+            'popular'    => $addons->orderByDesc('downloads_count'),
+            'rating'     => $addons->orderByDesc('rating_avg')->orderByDesc('rating_count'),
+            'price_asc'  => $addons->orderBy('is_paid')->orderBy('price'),
+            'price_desc' => $addons->orderByDesc('price'),
+            default      => $addons->orderByDesc('is_featured')->orderByDesc('published_at'),
+        };
+
+        $addons = $addons->paginate(20)->withQueryString();
 
         return response()->json([
             'data' => $addons->getCollection()->map(fn ($a) => $this->summary($a)),

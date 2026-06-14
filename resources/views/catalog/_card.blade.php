@@ -11,6 +11,9 @@
         </div>
     </div>
     <p class="text-sm text-gray-500 mt-3 line-clamp-2 flex-1 min-h-[2.5rem]">{{ $addon->tagline ?: \Illuminate\Support\Str::limit(strip_tags($addon->description), 90) ?: 'No description.' }}</p>
+    @if ($addon->rating_count > 0)
+        <div class="flex items-center gap-1.5 mt-2">@include('catalog._stars', ['rating' => $addon->rating_avg])<span class="text-[11px] text-gray-400">{{ number_format($addon->rating_avg, 1) }} ({{ $addon->rating_count }})</span></div>
+    @endif
     <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
         <span class="text-xs text-gray-400"><i class="fas fa-download mr-1"></i>{{ number_format($addon->downloads_count) }}</span>
         <span class="text-sm font-bold {{ $addon->isFree() ? 'text-emerald-600' : 'text-indigo-600' }}">{{ $addon->isFree() ? 'Free' : number_format($addon->price, 2) . ' ' . $addon->currency }}</span>

@@ -62,4 +62,15 @@ class Addon extends Model
             ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->icon_path)
             : null;
     }
+
+    /** Recalculate the cached rating from approved reviews. */
+    public function recomputeRating(): void
+    {
+        $approved = $this->reviews()->where('is_approved', true);
+
+        $this->update([
+            'rating_avg'   => round((float) $approved->avg('rating'), 2),
+            'rating_count' => $approved->count(),
+        ]);
+    }
 }

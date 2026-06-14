@@ -24,8 +24,13 @@
                     <option value="{{ $c->slug }}" @selected(request('category') === $c->slug)>{{ $c->name }}</option>
                 @endforeach
             </select>
+            <select name="sort" onchange="this.form.submit()" class="text-sm rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                @foreach (['' => 'Featured', 'popular' => 'Most downloaded', 'rating' => 'Top rated', 'price_asc' => 'Price: low → high', 'price_desc' => 'Price: high → low'] as $k => $l)
+                    <option value="{{ $k }}" @selected((string) request('sort') === $k)>{{ $l }}</option>
+                @endforeach
+            </select>
         </form>
-        @if (request()->hasAny(['q', 'type', 'category']))
+        @if (request()->hasAny(['q', 'type', 'category', 'sort']))
             <a href="{{ route('catalog.index') }}" class="text-sm text-gray-500 hover:text-gray-800">Clear</a>
         @endif
     </div>

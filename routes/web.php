@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\Admin\LicenseController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [CatalogController::class, 'home'])->name('catalog.home');
 Route::get('/addons', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/addons/{addon:slug}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::post('/addons/{addon:slug}/reviews', [CatalogController::class, 'storeReview'])->middleware('throttle:5,1')->name('catalog.reviews.store');
 Route::get('/categories/{category:slug}', [CatalogController::class, 'category'])->name('catalog.category');
 
 Route::get('/dashboard', function () {
@@ -52,6 +54,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('licenses/{license}', [LicenseController::class, 'update'])->name('licenses.update');
     Route::delete('licenses/{license}', [LicenseController::class, 'destroy'])->name('licenses.destroy');
     Route::delete('licenses/{license}/activations/{activation}', [LicenseController::class, 'deactivate'])->name('licenses.deactivate');
+
+    // Reviews moderation
+    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::put('reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 require __DIR__.'/auth.php';
