@@ -9,7 +9,7 @@ REST API: it lists addons, shows details + screenshots, and installs a downloade
 through the LMS's existing addon-install pipeline.
 
 ## Stack
-- Laravel 13 · PHP 8.2+
+- Laravel 12 · PHP 8.2+
 - Breeze (Blade) auth · Tailwind CSS · Vite
 - SQLite for local dev (switch to MySQL for production)
 
