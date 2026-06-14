@@ -90,6 +90,21 @@
         </header>
 
         <main class="p-4 sm:p-6">
+            @if (session('success'))
+                <div class="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="fas fa-circle-check"></i><span>{{ session('success') }}</span>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">
+                    <i class="fas fa-circle-exclamation"></i><span>{{ session('error') }}</span>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200">
+                    <i class="fas fa-circle-exclamation mr-1"></i>{{ $errors->first() }}
+                </div>
+            @endif
             {{ $slot }}
         </main>
     </div>

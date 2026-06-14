@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AddonController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// ── Admin: addon management ──
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('addons', [AddonController::class, 'index'])->name('addons.index');
+    Route::get('addons/create', [AddonController::class, 'create'])->name('addons.create');
+    Route::post('addons', [AddonController::class, 'store'])->name('addons.store');
+    Route::get('addons/{addon}/edit', [AddonController::class, 'edit'])->name('addons.edit');
+    Route::put('addons/{addon}', [AddonController::class, 'update'])->name('addons.update');
+    Route::delete('addons/{addon}', [AddonController::class, 'destroy'])->name('addons.destroy');
+    Route::post('addons/{addon}/publish', [AddonController::class, 'publish'])->name('addons.publish');
+
+    Route::post('addons/{addon}/versions', [AddonController::class, 'addVersion'])->name('addons.versions.store');
+    Route::delete('addons/{addon}/versions/{version}', [AddonController::class, 'deleteVersion'])->name('addons.versions.destroy');
+
+    Route::post('addons/{addon}/screenshots', [AddonController::class, 'addScreenshots'])->name('addons.screenshots.store');
+    Route::delete('addons/{addon}/screenshots/{screenshot}', [AddonController::class, 'deleteScreenshot'])->name('addons.screenshots.destroy');
 });
 
 require __DIR__.'/auth.php';
