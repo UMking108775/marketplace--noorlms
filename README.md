@@ -1,4 +1,4 @@
-# Noor Marketplace 1
+# Noor Marketplace
 A standalone addon marketplace for **Noor LMS** — a Play-Store-style catalog where you
 publish addons (free or paid) and every LMS install can browse, download and install
 them from its admin panel.
